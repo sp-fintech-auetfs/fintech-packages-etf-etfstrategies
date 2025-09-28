@@ -116,13 +116,6 @@ class SIP extends EtfStrategies
         }
 
         $currencySymbol = '$';
-        if (isset($this->access->auth->account()['profile']['locale_country_id'])) {
-            $country = $this->basepackages->geoCountries->getById((int) $this->access->auth->account()['profile']['locale_country_id']);
-
-            if ($country && isset($country['currency_symbol'])) {
-                $currencySymbol = $country['currency_symbol'];
-            }
-        }
 
         if (isset($data['trajectory']) && $data['trajectory'] !== 'no') {
             if (!isset($this->scheme)) {

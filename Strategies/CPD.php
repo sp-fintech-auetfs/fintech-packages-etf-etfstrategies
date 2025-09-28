@@ -173,13 +173,6 @@ class CPD extends EtfStrategies
         }
 
         $currencySymbol = '$';
-        if (isset($this->access->auth->account()['profile']['locale_country_id'])) {
-            $country = $this->basepackages->geoCountries->getById((int) $this->access->auth->account()['profile']['locale_country_id']);
-
-            if ($country && isset($country['currency_symbol'])) {
-                $currencySymbol = $country['currency_symbol'];
-            }
-        }
 
         $this->transactionsCount = ['buy' => 0, 'sell' => 0];
         $this->totalTransactionsAmounts = ['buy' => 0, 'sell' => 0];
