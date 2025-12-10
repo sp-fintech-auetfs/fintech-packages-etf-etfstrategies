@@ -26,8 +26,6 @@ class CPD extends EtfStrategies
 
     protected $portfolioPackage;
 
-    protected $transactionPackage;
-
     protected $schemePackage;
 
     protected $categoriesPackage;
@@ -87,7 +85,8 @@ class CPD extends EtfStrategies
                 $diff = numberFormatPrecision(abs($firstSchemeValue - $secondSchemeValue) / 2, 2);
             }
 
-            $this->transactionPackage = $this->usePackage(EtfTransactions::class);
+            $transactionPackage = $this->usePackage(EtfTransactions::class);
+            $transactionPackage->setFFValidation(false);
 
             $sellTransaction = [];
             $sellTransaction['type'] = 'sell';
@@ -104,23 +103,20 @@ class CPD extends EtfStrategies
             $this->transactions[$date]['sell']['transaction_amount'] = (float) $diff;
             $this->transactions[$date]['sell']['strategy_id'] = (int) $data['strategy_id'];
 
-            if (!$this->transactionPackage->addEtfTransaction($sellTransaction)) {
+            if (!$transactionPackage->addEtfTransaction($sellTransaction)) {
                 $this->portfolioPackage->recalculatePortfolio(['portfolio_id' => $data['portfolio_id']], true);
 
                 $this->addResponse(
-                    $this->transactionPackage->packagesData->responseMessage,
-                    $this->transactionPackage->packagesData->responseCode,
-                    $this->transactionPackage->packagesData->responseData ?? []
+                    $transactionPackage->packagesData->responseMessage,
+                    $transactionPackage->packagesData->responseCode,
+                    $transactionPackage->packagesData->responseData ?? []
                 );
 
                 return false;
             }
 
-            if (!$this->transactionPackage) {
-                $this->transactionPackage = $this->usePackage(EtfTransactions::class);
-
-                $this->transactionPackage->setFFValidation(false);
-            }
+            $transactionPackage = $this->usePackage(EtfTransactions::class);
+            $transactionPackage->setFFValidation(false);
 
             $buyTransaction = [];
             $buyTransaction['type'] = 'buy';
@@ -137,13 +133,13 @@ class CPD extends EtfStrategies
             $this->transactions[$date]['buy']['transaction_amount'] = (float) $diff;
             $this->transactions[$date]['buy']['strategy_id'] = (int) $data['strategy_id'];
 
-            if (!$this->transactionPackage->addEtfTransaction($buyTransaction)) {
+            if (!$transactionPackage->addEtfTransaction($buyTransaction)) {
                 $this->portfolioPackage->recalculatePortfolio(['portfolio_id' => $data['portfolio_id']], true);
 
                 $this->addResponse(
-                    $this->transactionPackage->packagesData->responseMessage,
-                    $this->transactionPackage->packagesData->responseCode,
-                    $this->transactionPackage->packagesData->responseData ?? []
+                    $transactionPackage->packagesData->responseMessage,
+                    $transactionPackage->packagesData->responseCode,
+                    $transactionPackage->packagesData->responseData ?? []
                 );
 
                 return false;

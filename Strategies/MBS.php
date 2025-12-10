@@ -22,8 +22,6 @@ class MBS extends EtfStrategies
 
     protected $totalTransactionsAmounts = [];
 
-    protected $transactionPackage;
-
     public function init()
     {
         $this->strategyArgs = $this->getStategyArgs();
@@ -35,70 +33,70 @@ class MBS extends EtfStrategies
 
     public function processStrategyTransactionsByDate($data, $date)
     {
-        if (!$this->transactionPackage) {
-            $this->transactionPackage = $this->usePackage(EtfTransactions::class);
-
-            $this->transactionPackage->setFFValidation(false);
-        }
-
         if (isset($this->transactions[$date]) && count($this->transactions[$date]) > 0) {
             foreach ($this->transactions[$date] as $transactionType => $transactions) {
-                if ($transactionType === 'buy') {
-                    if (count($transactions) > 0) {
-                        foreach ($transactions as $transaction) {
-                            $transaction['amc_transaction_id'] = '';
-                            $transaction['portfolio_id'] = $data['portfolio_id'];
-                            $transaction['details'] = 'Added via Strategy:' . $this->strategyDisplayName;
-                            $transaction['via_strategies'] = true;
-                            $transaction['strategy_id'] = (int) $data['strategy_id'];
+                if ($transactionType === 'buy' &&
+                    count($transactions) > 0
+                ) {
+                    foreach ($transactions as $transaction) {
+                        $transaction['amc_transaction_id'] = '';
+                        $transaction['portfolio_id'] = $data['portfolio_id'];
+                        $transaction['details'] = 'Added via Strategy:' . $this->strategyDisplayName;
+                        $transaction['via_strategies'] = true;
+                        $transaction['strategy_id'] = (int) $data['strategy_id'];
 
-                            if (!$this->transactionPackage->addEtfTransaction($transaction)) {
-                                $this->addResponse(
-                                    $this->transactionPackage->packagesData->responseMessage,
-                                    $this->transactionPackage->packagesData->responseCode,
-                                    $this->transactionPackage->packagesData->responseData ?? []
-                                );
+                        $transactionPackage = $this->usePackage(EtfTransactions::class);
+                        $transactionPackage->setFFValidation(false);
 
-                                return false;
-                            }
+                        if (!$transactionPackage->addEtfTransaction($transaction)) {
+                            $this->addResponse(
+                                $transactionPackage->packagesData->responseMessage,
+                                $transactionPackage->packagesData->responseCode,
+                                $transactionPackage->packagesData->responseData ?? []
+                            );
+
+                            return false;
                         }
                     }
                 }
             }
 
             foreach ($this->transactions[$date] as $transactionType => $transactions) {
-                if ($transactionType === 'sell') {
-                    if (count($transactions) > 0) {
-                        foreach ($transactions as $transaction) {
-                            $transaction['amc_transaction_id'] = '';
-                            $transaction['portfolio_id'] = $data['portfolio_id'];
-                            $transaction['details'] = 'Added via Strategy:' . $this->strategyDisplayName;
-                            $transaction['via_strategies'] = true;
-                            $transaction['strategy_id'] = (int) $data['strategy_id'];
+                if ($transactionType === 'sell' &&
+                    count($transactions) > 0
+                ) {
+                    foreach ($transactions as $transaction) {
+                        $transaction['amc_transaction_id'] = '';
+                        $transaction['portfolio_id'] = $data['portfolio_id'];
+                        $transaction['details'] = 'Added via Strategy:' . $this->strategyDisplayName;
+                        $transaction['via_strategies'] = true;
+                        $transaction['strategy_id'] = (int) $data['strategy_id'];
 
-                            if (!$this->transactionPackage->addEtfTransaction($transaction)) {
-                                if (str_contains($this->transactionPackage->packagesData->responseMessage, 'exceeds')) {
-                                    $transactions['sell_all'] = 'true';
+                        $transactionPackage = $this->usePackage(EtfTransactions::class);
+                        $transactionPackage->setFFValidation(false);
 
-                                    if (!$this->transactionPackage->addEtfTransaction($transactions)) {
-                                        $this->addResponse(
-                                            $this->transactionPackage->packagesData->responseMessage,
-                                            $this->transactionPackage->packagesData->responseCode,
-                                            $this->transactionPackage->packagesData->responseData ?? []
-                                        );
+                        if (!$transactionPackage->addEtfTransaction($transaction)) {
+                            if (str_contains($transactionPackage->packagesData->responseMessage, 'exceeds')) {
+                                $transactions['sell_all'] = 'true';
 
-                                        return false;
-                                    }
+                                if (!$transactionPackage->addEtfTransaction($transactions)) {
+                                    $this->addResponse(
+                                        $transactionPackage->packagesData->responseMessage,
+                                        $transactionPackage->packagesData->responseCode,
+                                        $transactionPackage->packagesData->responseData ?? []
+                                    );
+
+                                    return false;
                                 }
-
-                                $this->addResponse(
-                                    $this->transactionPackage->packagesData->responseMessage,
-                                    $this->transactionPackage->packagesData->responseCode,
-                                    $this->transactionPackage->packagesData->responseData ?? []
-                                );
-
-                                return false;
                             }
+
+                            $this->addResponse(
+                                $transactionPackage->packagesData->responseMessage,
+                                $transactionPackage->packagesData->responseCode,
+                                $transactionPackage->packagesData->responseData ?? []
+                            );
+
+                            return false;
                         }
                     }
                 }
